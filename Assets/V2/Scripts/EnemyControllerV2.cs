@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using RootMotion.FinalIK;
 
-public class PlayerControllerV2 : MonoBehaviour
+public class EnemyControllerV2 : MonoBehaviour
 {
     public float acceleration = 1f;
     public float deceleration = 1f;
@@ -52,11 +52,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     void Update()
     {
-        isWalking = Input.GetKey(KeyCode.D);
-        isWalkingBack = Input.GetKey(KeyCode.A);
-        isCovering = Input.GetKey(KeyCode.W);
-        isKneeling = Input.GetKey(KeyCode.S);
-
         switch (state)
         {
             case State.IDLE:
@@ -86,6 +81,11 @@ public class PlayerControllerV2 : MonoBehaviour
         animator.SetBool(isKneelingHash, isKneeling);
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("A");
+    }
+
     private void UpdateIdle()
     {
         if (this.transform.position.z > 0.047f)
@@ -95,11 +95,6 @@ public class PlayerControllerV2 : MonoBehaviour
             {
                 this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0.047f);
             }
-        }
-
-        if (IsIkActive())
-        {
-            GetShootInput();
         }
         if (IsIkActive() && isCovering)
         {
@@ -127,10 +122,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     private void UpdateCovering()
     {
-        if (!IsIkActive())
-        {
-            GetShootInput();
-        }
         if (isCovering)
         {
             if (this.transform.position.z < 0.329f)
@@ -184,7 +175,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     private void UpdateKneeling()
     {
-        GetShootInput();
         if (isKneeling)
         {
             if (isShooting)
@@ -204,7 +194,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     private void UpdateKneelingShootingStart()
     {
-
         if (!hasShootAnimationStarted)
         {
             hasShootAnimationStarted = IsAnimationPlaying("KneelingShoot");
@@ -327,4 +316,3 @@ public class PlayerControllerV2 : MonoBehaviour
         if (isShooting) wasShooting = true;
     }
 }
-
