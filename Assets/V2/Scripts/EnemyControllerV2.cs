@@ -92,7 +92,7 @@ public class EnemyControllerV2 : MonoBehaviour
         {
             isPlayerInRange = true;
             playerPosition = other.gameObject.transform.position;
-            playerController = other.gameObject.GetComponent<PlayerControllerV2>();
+            playerController = other.transform.root.gameObject.GetComponent<PlayerControllerV2>();
         }
     }
 
