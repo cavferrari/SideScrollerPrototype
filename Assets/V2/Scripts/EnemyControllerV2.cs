@@ -7,6 +7,7 @@ public class EnemyControllerV2 : MonoBehaviour
     public float acceleration = 1f;
     public float deceleration = 1f;
     public float maxWalkVelocity = 1f;
+    public Transform target;
     public float COVER_TO_STAND_TIME = 1.3f;
     public float KNEELING_TO_STAND_TIME = 1.4f;
     public float COVER_SHOOTING_TIME = 0.4f;
@@ -36,6 +37,10 @@ public class EnemyControllerV2 : MonoBehaviour
     private AimIK aimIk;
     private FullBodyBipedIK fbbIk;
     private bool hasShootAnimationStarted = false;
+    private bool isPlayerInRange = false;
+    private bool isResponding = false;
+    private Vector3 playerPosition;
+    private PlayerControllerV2 playerController;
 
     void Start()
     {
@@ -83,23 +88,43 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("A");
+        if (other.tag == "Player")
+        {
+            isPlayerInRange = true;
+            playerPosition = other.gameObject.transform.position;
+            playerController = other.gameObject.GetComponent<PlayerControllerV2>();
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            isPlayerInRange = false;
+        }
     }
 
     private void UpdateIdle()
     {
-        if (this.transform.position.z > 0.047f)
+        /* if (this.transform.position.z > 0.047f)
         {
             this.transform.Translate(this.transform.forward * Time.deltaTime * 0.5f);
             if (this.transform.position.z < 0.047f)
             {
                 this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0.047f);
             }
+        } */
+        if (isPlayerInRange && !isResponding)
+        {
+            StartCoroutine(IdleResponse());
+            isResponding = true;
         }
+
         if (IsIkActive() && isCovering)
         {
             SetIkWeight(0f);
             animator.SetBool(isCoveringHash, true);
+            isResponding = false;
             state = State.COVERING;
         }
         else if (IsIkActive() && isKneeling)
@@ -122,6 +147,15 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private void UpdateCovering()
     {
+        if (isPlayerInRange && !isResponding)
+        {
+            if (!playerController.IsShooting())
+            {
+                StartCoroutine(CoveringResponse());
+                isResponding = true;
+            }
+        }
+
         if (isCovering)
         {
             if (this.transform.position.z < 0.329f)
@@ -241,6 +275,23 @@ public class EnemyControllerV2 : MonoBehaviour
     {
         yield return new WaitForSeconds(time);
         SetIkWeight(weight);
+    }
+
+    private IEnumerator IdleResponse()
+    {
+        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), 0f);
+        yield return new WaitForSeconds(0.4f);
+        isShooting = true;
+        yield return new WaitForSeconds(0.2f);
+        isCovering = true;
+    }
+    private IEnumerator CoveringResponse()
+    {
+        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), 0f);
+        yield return new WaitForSeconds(1f);
+        isShooting = true;
+        yield return new WaitForSeconds(1f);
+        isResponding = false;
     }
 
     private void SetIkWeight(float weight)

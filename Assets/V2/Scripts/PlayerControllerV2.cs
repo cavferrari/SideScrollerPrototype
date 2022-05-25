@@ -86,6 +86,21 @@ public class PlayerControllerV2 : MonoBehaviour
         animator.SetBool(isKneelingHash, isKneeling);
     }
 
+    public bool IsCovering()
+    {
+        return isCovering;
+    }
+
+    public bool IsShooting()
+    {
+        return isShooting;
+    }
+
+    public bool IsKneeling()
+    {
+        return isKneeling;
+    }
+
     private void UpdateIdle()
     {
         if (this.transform.position.z > 0.047f)
