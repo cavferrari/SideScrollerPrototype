@@ -36,7 +36,6 @@ public class PlayerControllerV2 : MonoBehaviour
     private bool wasShooting;
     private bool isKneeling;
     private bool wasKneeling;
-    private bool isCrouching;
     private bool isDead = false;
     private AimIK aimIk;
     private FullBodyBipedIK fbbIk;
@@ -66,7 +65,6 @@ public class PlayerControllerV2 : MonoBehaviour
             isWalkingBack = Input.GetKey(KeyCode.A);
             isCovering = Input.GetKey(KeyCode.W);
             isKneeling = Input.GetKey(KeyCode.S);
-            isCrouching = Input.GetKey(KeyCode.S);
 
             switch (state)
             {
@@ -100,7 +98,7 @@ public class PlayerControllerV2 : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.tag == "KneelingCover")
         {
@@ -108,7 +106,7 @@ public class PlayerControllerV2 : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    void OnTriggerExit(Collider other)
     {
         if (other.tag == "KneelingCover")
         {
@@ -298,7 +296,7 @@ public class PlayerControllerV2 : MonoBehaviour
         {
             StartCoroutine(WaitAndShoot(0.3f));
         }
-        if (!isCrouching)
+        if (!isKneeling)
         {
             animator.SetBool(isCrouchingHash, false);
             state = State.IDLE;

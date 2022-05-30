@@ -16,7 +16,8 @@ public class EnemyControllerV2 : MonoBehaviour
     private enum State
     {
         IDLE, COVERING, COVERING_SHOOTING_START, COVERING_SHOOTING_END,
-        KNEELING, KNEELING_SHOOTING_START, KNEELING_SHOOTING_END
+        KNEELING, KNEELING_SHOOTING_START, KNEELING_SHOOTING_END,
+        CROUCHING
     }
     private Animator animator;
     private Ballistics.Weapon weapon;
@@ -26,6 +27,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private int isCoveringHash;
     private int isShootingHash;
     private int isKneelingHash;
+    private int isCrouchingHash;
     private int isDeadHash;
     private bool isWalking;
     private bool isWalkingBack;
@@ -35,6 +37,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private bool wasShooting;
     private bool isKneeling;
     private bool wasKneeling;
+    private bool isCrouching;
     private bool isDead = false;
     private AimIK aimIk;
     private FullBodyBipedIK fbbIk;
@@ -43,6 +46,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private bool isResponding = false;
     private Vector3 playerPosition;
     private PlayerControllerV2 playerController;
+    private bool canKneelingCover = false;
 
     void Start()
     {
@@ -55,6 +59,7 @@ public class EnemyControllerV2 : MonoBehaviour
         isCoveringHash = Animator.StringToHash("isCovering");
         isShootingHash = Animator.StringToHash("isShooting");
         isKneelingHash = Animator.StringToHash("isKneeling");
+        isCrouchingHash = Animator.StringToHash("isCrouching");
         isDeadHash = Animator.StringToHash("isDead");
     }
 
@@ -85,9 +90,38 @@ public class EnemyControllerV2 : MonoBehaviour
                 case State.KNEELING_SHOOTING_END:
                     UpdateKneelingShootingEnd();
                     break;
+                case State.CROUCHING:
+                    UpdateCrouching();
+                    break;
                 default:
                     break;
             }
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            isPlayerInRange = true;
+            playerPosition = other.gameObject.transform.position;
+            playerController = other.transform.root.gameObject.GetComponent<PlayerControllerV2>();
+        }
+        if (other.tag == "KneelingCover")
+        {
+            canKneelingCover = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            isPlayerInRange = false;
+        }
+        if (other.tag == "KneelingCover")
+        {
+            canKneelingCover = false;
         }
     }
 
@@ -98,24 +132,6 @@ public class EnemyControllerV2 : MonoBehaviour
             isDead = true;
             SetIkWeight(0f);
             animator.SetTrigger(isDeadHash);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            isPlayerInRange = true;
-            playerPosition = other.gameObject.transform.position;
-            playerController = other.transform.root.gameObject.GetComponent<PlayerControllerV2>();
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            isPlayerInRange = false;
         }
     }
 
@@ -144,9 +160,17 @@ public class EnemyControllerV2 : MonoBehaviour
         }
         else if (IsIkActive() && isKneeling)
         {
-            SetIkWeight(0f);
-            animator.SetBool(isKneelingHash, true);
-            state = State.KNEELING;
+            if (canKneelingCover)
+            {
+                SetIkWeight(0f);
+                animator.SetBool(isKneelingHash, true);
+                state = State.KNEELING;
+            }
+            else
+            {
+                animator.SetBool(isCrouchingHash, true);
+                state = State.CROUCHING;
+            }
         }
         else
         {
@@ -264,6 +288,20 @@ public class EnemyControllerV2 : MonoBehaviour
             SetIkWeight(0f);
             animator.SetBool(isShootingHash, false);
             state = State.KNEELING;
+        }
+    }
+
+    private void UpdateCrouching()
+    {
+        GetShootInput();
+        if (isShooting)
+        {
+            StartCoroutine(WaitAndShoot(0.3f));
+        }
+        if (!isKneeling)
+        {
+            animator.SetBool(isCrouchingHash, false);
+            state = State.IDLE;
         }
     }
 

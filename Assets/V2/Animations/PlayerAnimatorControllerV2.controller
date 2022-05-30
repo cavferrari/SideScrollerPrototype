@@ -361,18 +361,6 @@ AnimatorController:
   m_Name: PlayerAnimatorControllerV2
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: isWalking
-    m_Type: 4
-    m_DefaultFloat: 0
-    m_DefaultInt: 0
-    m_DefaultBool: 0
-    m_Controller: {fileID: 0}
-  - m_Name: isWalkingBack
-    m_Type: 4
-    m_DefaultFloat: 0
-    m_DefaultInt: 0
-    m_DefaultBool: 0
-    m_Controller: {fileID: 0}
   - m_Name: Blend
     m_Type: 1
     m_DefaultFloat: 0
@@ -548,7 +536,7 @@ AnimatorStateMachine:
     m_Position: {x: -640, y: 220, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -8530690617198261332}
-    m_Position: {x: 270, y: 20, z: 0}
+    m_Position: {x: 270, y: 10, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -487408180642606780}
     m_Position: {x: 390, y: 150, z: 0}
@@ -688,7 +676,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: KneelingShoot
-  m_Speed: 1
+  m_Speed: 1.2
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -5618514528434915372}
