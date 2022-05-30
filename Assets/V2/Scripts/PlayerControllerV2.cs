@@ -15,7 +15,8 @@ public class PlayerControllerV2 : MonoBehaviour
     private enum State
     {
         IDLE, COVERING, COVERING_SHOOTING_START, COVERING_SHOOTING_END,
-        KNEELING, KNEELING_SHOOTING_START, KNEELING_SHOOTING_END
+        KNEELING, KNEELING_SHOOTING_START, KNEELING_SHOOTING_END,
+        CROUCHING
     }
     private Animator animator;
     private Ballistics.Weapon weapon;
@@ -25,6 +26,7 @@ public class PlayerControllerV2 : MonoBehaviour
     private int isCoveringHash;
     private int isShootingHash;
     private int isKneelingHash;
+    private int isCrouchingHash;
     private int isDeadHash;
     private bool isWalking;
     private bool isWalkingBack;
@@ -34,10 +36,12 @@ public class PlayerControllerV2 : MonoBehaviour
     private bool wasShooting;
     private bool isKneeling;
     private bool wasKneeling;
+    private bool isCrouching;
     private bool isDead = false;
     private AimIK aimIk;
     private FullBodyBipedIK fbbIk;
     private bool hasShootAnimationStarted = false;
+    private bool canKneelingCover = false;
 
     void Start()
     {
@@ -50,6 +54,7 @@ public class PlayerControllerV2 : MonoBehaviour
         isCoveringHash = Animator.StringToHash("isCovering");
         isShootingHash = Animator.StringToHash("isShooting");
         isKneelingHash = Animator.StringToHash("isKneeling");
+        isCrouchingHash = Animator.StringToHash("isCrouching");
         isDeadHash = Animator.StringToHash("isDead");
     }
 
@@ -61,6 +66,7 @@ public class PlayerControllerV2 : MonoBehaviour
             isWalkingBack = Input.GetKey(KeyCode.A);
             isCovering = Input.GetKey(KeyCode.W);
             isKneeling = Input.GetKey(KeyCode.S);
+            isCrouching = Input.GetKey(KeyCode.S);
 
             switch (state)
             {
@@ -85,10 +91,28 @@ public class PlayerControllerV2 : MonoBehaviour
                 case State.KNEELING_SHOOTING_END:
                     UpdateKneelingShootingEnd();
                     break;
+                case State.CROUCHING:
+                    UpdateCrouching();
+                    break;
                 default:
                     break;
             }
-            animator.SetBool(isKneelingHash, isKneeling);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "KneelingCover")
+        {
+            canKneelingCover = true;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "KneelingCover")
+        {
+            canKneelingCover = false;
         }
     }
 
@@ -109,9 +133,12 @@ public class PlayerControllerV2 : MonoBehaviour
 
     public void Die()
     {
-        isDead = true;
-        SetIkWeight(0f);
-        animator.SetTrigger(isDeadHash);
+        if (!isDead)
+        {
+            isDead = true;
+            SetIkWeight(0f);
+            animator.SetTrigger(isDeadHash);
+        }
     }
 
     private void UpdateIdle()
@@ -137,9 +164,17 @@ public class PlayerControllerV2 : MonoBehaviour
         }
         else if (IsIkActive() && isKneeling)
         {
-            SetIkWeight(0f);
-            animator.SetBool(isKneelingHash, true);
-            state = State.KNEELING;
+            if (canKneelingCover)
+            {
+                SetIkWeight(0f);
+                animator.SetBool(isKneelingHash, true);
+                state = State.KNEELING;
+            }
+            else
+            {
+                animator.SetBool(isCrouchingHash, true);
+                state = State.CROUCHING;
+            }
         }
         else
         {
@@ -232,7 +267,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     private void UpdateKneelingShootingStart()
     {
-
         if (!hasShootAnimationStarted)
         {
             hasShootAnimationStarted = IsAnimationPlaying("KneelingShoot");
@@ -254,6 +288,20 @@ public class PlayerControllerV2 : MonoBehaviour
             SetIkWeight(0f);
             animator.SetBool(isShootingHash, false);
             state = State.KNEELING;
+        }
+    }
+
+    private void UpdateCrouching()
+    {
+        GetShootInput();
+        if (isShooting)
+        {
+            StartCoroutine(WaitAndShoot(0.3f));
+        }
+        if (!isCrouching)
+        {
+            animator.SetBool(isCrouchingHash, false);
+            state = State.IDLE;
         }
     }
 

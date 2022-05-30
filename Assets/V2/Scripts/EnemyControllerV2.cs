@@ -88,15 +88,17 @@ public class EnemyControllerV2 : MonoBehaviour
                 default:
                     break;
             }
-            animator.SetBool(isKneelingHash, isKneeling);
         }
     }
 
     public void Die()
     {
-        isDead = true;
-        SetIkWeight(0f);
-        animator.SetTrigger(isDeadHash);
+        if (!isDead)
+        {
+            isDead = true;
+            SetIkWeight(0f);
+            animator.SetTrigger(isDeadHash);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
