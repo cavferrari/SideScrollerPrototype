@@ -28,6 +28,7 @@ public class PlayerControllerV2 : MonoBehaviour
     private int isKneelingHash;
     private int isCrouchingHash;
     private int isDeadHash;
+    private int isAliveHash;
     private bool isWalking;
     private bool isWalkingBack;
     private float velocity = 0f;
@@ -41,6 +42,7 @@ public class PlayerControllerV2 : MonoBehaviour
     private FullBodyBipedIK fbbIk;
     private bool hasShootAnimationStarted = false;
     private bool canKneelingCover = false;
+    private Vector3 startPosition;
 
     void Start()
     {
@@ -55,6 +57,8 @@ public class PlayerControllerV2 : MonoBehaviour
         isKneelingHash = Animator.StringToHash("isKneeling");
         isCrouchingHash = Animator.StringToHash("isCrouching");
         isDeadHash = Animator.StringToHash("isDead");
+        isAliveHash = Animator.StringToHash("isAlive");
+        startPosition = this.transform.position;
     }
 
     void Update()
@@ -136,6 +140,7 @@ public class PlayerControllerV2 : MonoBehaviour
             isDead = true;
             SetIkWeight(0f);
             animator.SetTrigger(isDeadHash);
+            StartCoroutine(Restart(2f));
         }
     }
 
@@ -326,6 +331,21 @@ public class PlayerControllerV2 : MonoBehaviour
     {
         yield return new WaitForSeconds(time);
         SetIkWeight(weight);
+    }
+
+    private IEnumerator Restart(float time)
+    {
+        yield return new WaitForSeconds(time);
+        isDead = false;
+        isWalking = false;
+        isWalkingBack = false;
+        isCovering = false;
+        isKneeling = false;
+        isShooting = false;
+        SetIkWeight(1f);
+        animator.SetTrigger(isAliveHash);
+        state = State.IDLE;
+        this.transform.position = startPosition;
     }
 
     private void SetIkWeight(float weight)
