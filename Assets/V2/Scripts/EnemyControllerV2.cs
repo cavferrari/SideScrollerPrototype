@@ -26,6 +26,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private int isCoveringHash;
     private int isShootingHash;
     private int isKneelingHash;
+    private int isDeadHash;
     private bool isWalking;
     private bool isWalkingBack;
     private float velocity = 0f;
@@ -34,6 +35,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private bool wasShooting;
     private bool isKneeling;
     private bool wasKneeling;
+    private bool isDead = false;
     private AimIK aimIk;
     private FullBodyBipedIK fbbIk;
     private bool hasShootAnimationStarted = false;
@@ -53,37 +55,48 @@ public class EnemyControllerV2 : MonoBehaviour
         isCoveringHash = Animator.StringToHash("isCovering");
         isShootingHash = Animator.StringToHash("isShooting");
         isKneelingHash = Animator.StringToHash("isKneeling");
+        isDeadHash = Animator.StringToHash("isDead");
     }
 
     void Update()
     {
-        switch (state)
+        if (!isDead)
         {
-            case State.IDLE:
-                UpdateIdle();
-                break;
-            case State.COVERING:
-                UpdateCovering();
-                break;
-            case State.COVERING_SHOOTING_START:
-                UpdateCoveringShootingStart();
-                break;
-            case State.COVERING_SHOOTING_END:
-                UpdateCoveringShootingEnd();
-                break;
-            case State.KNEELING:
-                UpdateKneeling();
-                break;
-            case State.KNEELING_SHOOTING_START:
-                UpdateKneelingShootingStart();
-                break;
-            case State.KNEELING_SHOOTING_END:
-                UpdateKneelingShootingEnd();
-                break;
-            default:
-                break;
+            switch (state)
+            {
+                case State.IDLE:
+                    UpdateIdle();
+                    break;
+                case State.COVERING:
+                    UpdateCovering();
+                    break;
+                case State.COVERING_SHOOTING_START:
+                    UpdateCoveringShootingStart();
+                    break;
+                case State.COVERING_SHOOTING_END:
+                    UpdateCoveringShootingEnd();
+                    break;
+                case State.KNEELING:
+                    UpdateKneeling();
+                    break;
+                case State.KNEELING_SHOOTING_START:
+                    UpdateKneelingShootingStart();
+                    break;
+                case State.KNEELING_SHOOTING_END:
+                    UpdateKneelingShootingEnd();
+                    break;
+                default:
+                    break;
+            }
+            animator.SetBool(isKneelingHash, isKneeling);
         }
-        animator.SetBool(isKneelingHash, isKneeling);
+    }
+
+    public void Die()
+    {
+        isDead = true;
+        SetIkWeight(0f);
+        animator.SetTrigger(isDeadHash);
     }
 
     private void OnTriggerEnter(Collider other)

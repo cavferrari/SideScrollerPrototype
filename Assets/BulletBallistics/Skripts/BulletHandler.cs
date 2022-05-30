@@ -223,6 +223,17 @@ namespace Ballistics
                                 //Stop Bullet
                                 DeactivateBullet(cWeapon, cBullet.BulletTrans);
                                 processAgain = false;
+
+                                if (hitTrans.tag == "Player" || hitTrans.tag == "Enemy")
+                                {
+                                    RootMotion.FinalIK.HitReaction hitReaction = hitTrans.GetComponentInChildren<RootMotion.FinalIK.HitReaction>();
+                                    hitReaction.Hit(hit.collider, ray.direction * 2f, hit.point);
+                                    if (hit.collider.name.Equals("mixamorig:Head") || hit.collider.name.Equals("mixamorig:Spine2"))
+                                    {
+                                        if (hitTrans.tag == "Player") hitTrans.root.GetComponentInChildren<PlayerControllerV2>().Die();
+                                        else hitTrans.root.GetComponentInChildren<EnemyControllerV2>().Die();
+                                    }
+                                }
                                 continue;
                             }
                             else
