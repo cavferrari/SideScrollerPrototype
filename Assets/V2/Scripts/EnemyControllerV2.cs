@@ -104,8 +104,17 @@ public class EnemyControllerV2 : MonoBehaviour
         if (other.tag == "Player")
         {
             isPlayerInRange = true;
-            playerPosition = other.gameObject.transform.position;
             playerController = other.transform.root.gameObject.GetComponent<PlayerControllerV2>();
+            if (playerController.IsCovering())
+            {
+                playerPosition = other.gameObject.transform.position;
+                playerPosition.z = 0.232f;
+            }
+            else
+            {
+                playerPosition = other.gameObject.transform.position;
+                playerPosition.z = 0f;
+            }
         }
         if (other.tag == "KneelingCover")
         {
@@ -124,6 +133,12 @@ public class EnemyControllerV2 : MonoBehaviour
             canKneelingCover = false;
         }
     }
+
+    public bool IsCovering()
+    {
+        return isCovering;
+    }
+
 
     public void Die()
     {
@@ -332,7 +347,7 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private IEnumerator IdleResponse()
     {
-        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), 0f);
+        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
         yield return new WaitForSeconds(0.4f);
         isShooting = true;
         yield return new WaitForSeconds(0.2f);
@@ -340,7 +355,7 @@ public class EnemyControllerV2 : MonoBehaviour
     }
     private IEnumerator CoveringResponse()
     {
-        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), 0f);
+        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
         yield return new WaitForSeconds(1f);
         isShooting = true;
         yield return new WaitForSeconds(1f);

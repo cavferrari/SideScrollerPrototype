@@ -43,6 +43,8 @@ public class PlayerControllerV2 : MonoBehaviour
     private bool hasShootAnimationStarted = false;
     private bool canKneelingCover = false;
     private Vector3 startPosition;
+    private bool hasEnemy = false;
+    private Vector3 enemyPosition;
 
     void Start()
     {
@@ -104,17 +106,36 @@ public class PlayerControllerV2 : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "KneelingCover")
+        if (other.tag.Equals("KneelingCover"))
         {
             canKneelingCover = true;
+        }
+        if (other.tag.Equals("Enemy"))
+        {
+            hasEnemy = true;
+            EnemyControllerV2 enemyControllerV2 = other.GetComponent<EnemyControllerV2>();
+            if (enemyControllerV2.IsCovering())
+            {
+                enemyPosition = other.transform.position;
+                enemyPosition.z = 0.232f;
+            }
+            else
+            {
+                enemyPosition = other.transform.position;
+                enemyPosition.z = 0f;
+            }
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.tag == "KneelingCover")
+        if (other.tag.Equals("KneelingCover"))
         {
             canKneelingCover = false;
+        }
+        if (other.tag.Equals("Enemy"))
+        {
+            hasEnemy = false;
         }
     }
 
@@ -133,11 +154,30 @@ public class PlayerControllerV2 : MonoBehaviour
         return isKneeling;
     }
 
+    public bool HasEnemy()
+    {
+        return hasEnemy;
+    }
+
+    public Vector3 GetEnemyPosition()
+    {
+        return enemyPosition;
+    }
+
     public void Die()
     {
         if (!isDead)
         {
             isDead = true;
+            isWalking = false;
+            isWalkingBack = false;
+            isCovering = false;
+            isKneeling = false;
+            isShooting = false;
+            animator.SetBool(isCoveringHash, false);
+            animator.SetBool(isKneelingHash, false);
+            animator.SetBool(isShootingHash, false);
+            animator.SetBool(isCrouchingHash, false);
             SetIkWeight(0f);
             animator.SetTrigger(isDeadHash);
             StartCoroutine(Restart(2f));
@@ -337,11 +377,6 @@ public class PlayerControllerV2 : MonoBehaviour
     {
         yield return new WaitForSeconds(time);
         isDead = false;
-        isWalking = false;
-        isWalkingBack = false;
-        isCovering = false;
-        isKneeling = false;
-        isShooting = false;
         SetIkWeight(1f);
         animator.SetTrigger(isAliveHash);
         state = State.IDLE;
