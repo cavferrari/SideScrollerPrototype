@@ -70,7 +70,18 @@ public class PlayerControllerV2 : MonoBehaviour
             isWalking = Input.GetKey(KeyCode.D);
             isWalkingBack = Input.GetKey(KeyCode.A);
             isCovering = Input.GetKey(KeyCode.W);
-            isKneeling = Input.GetKey(KeyCode.S);
+            if (isWalking)
+            {
+                if (canKneelingCover)
+                {
+                    isKneeling = canKneelingCover;
+                }
+            }
+            else
+            {
+                isKneeling = false;
+                canKneelingCover = false;
+            }
 
             switch (state)
             {
@@ -129,10 +140,6 @@ public class PlayerControllerV2 : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.tag.Equals("KneelingCover"))
-        {
-            canKneelingCover = false;
-        }
         if (other.tag.Equals("Enemy"))
         {
             hasEnemy = false;
@@ -219,7 +226,7 @@ public class PlayerControllerV2 : MonoBehaviour
                 state = State.CROUCHING;
             }
         }
-        else
+        else if (!isCovering && !isKneeling)
         {
             if (isShooting)
             {
@@ -304,6 +311,7 @@ public class PlayerControllerV2 : MonoBehaviour
         {
             StartCoroutine(WaitAndSetIkWeigth(KNEELING_TO_STAND_TIME, 1f));
             animator.SetBool(isKneelingHash, false);
+            this.transform.Translate(-this.transform.right * 0.9f);
             state = State.IDLE;
         }
     }
