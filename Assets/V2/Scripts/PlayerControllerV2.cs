@@ -463,5 +463,15 @@ public class PlayerControllerV2 : MonoBehaviour
         }
         if (isShooting) wasShooting = true;
     }
+
+    void OnGUI()
+    {
+        GUILayout.Label(" A para recuar");
+        GUILayout.Label(" D para avançar");
+        GUILayout.Label(" W para se proteger em proteção vertical");
+        GUILayout.Label(" S para agachar");
+        GUILayout.Label(" D contra proteção horizontal para se proteger agachado. Solte D para pular proteção.");
+        GUILayout.Label(" Botão esquerdo do mouse para atirar.");
+    }
 }
 

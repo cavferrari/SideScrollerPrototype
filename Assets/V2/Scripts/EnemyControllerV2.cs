@@ -47,6 +47,7 @@ public class EnemyControllerV2 : MonoBehaviour
     private Vector3 playerPosition;
     private PlayerControllerV2 playerController;
     private bool canKneelingCover = false;
+    private int shots = 0;
 
     void Start()
     {
@@ -152,20 +153,14 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private void UpdateIdle()
     {
-        /* if (this.transform.position.z > 0.047f)
+        if (this.transform.position.z > -0.06f)
         {
             this.transform.Translate(this.transform.forward * Time.deltaTime * 0.5f);
-            if (this.transform.position.z < 0.047f)
+            if (this.transform.position.z < -0.06f)
             {
-                this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0.047f);
+                this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, -0.06f);
             }
-        } */
-        if (isPlayerInRange && !isResponding)
-        {
-            StartCoroutine(IdleResponse());
-            isResponding = true;
         }
-
         if (IsIkActive() && isCovering)
         {
             SetIkWeight(0f);
@@ -189,6 +184,10 @@ public class EnemyControllerV2 : MonoBehaviour
         }
         else
         {
+            if (isPlayerInRange && !isResponding && this.transform.position.z == -0.06f)
+            {
+                StartCoroutine(Respond());
+            }
             if (isShooting)
             {
                 StartCoroutine(WaitAndShoot(0.3f));
@@ -201,15 +200,6 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private void UpdateCovering()
     {
-        if (isPlayerInRange && !isResponding)
-        {
-            if (!playerController.IsShooting())
-            {
-                StartCoroutine(CoveringResponse());
-                isResponding = true;
-            }
-        }
-
         if (isCovering)
         {
             if (this.transform.position.z < 0.329f)
@@ -219,6 +209,10 @@ public class EnemyControllerV2 : MonoBehaviour
                 {
                     this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0.329f);
                 }
+            }
+            if (isPlayerInRange && !isResponding)
+            {
+                StartCoroutine(Respond());
             }
             if (isShooting)
             {
@@ -265,6 +259,10 @@ public class EnemyControllerV2 : MonoBehaviour
     {
         if (isKneeling)
         {
+            if (isPlayerInRange && !isResponding)
+            {
+                StartCoroutine(Respond());
+            }
             if (isShooting)
             {
                 StartCoroutine(WaitAndSetIkWeigth(KNEELING_SHOOTING_TIME, 1f));
@@ -308,7 +306,10 @@ public class EnemyControllerV2 : MonoBehaviour
 
     private void UpdateCrouching()
     {
-        GetShootInput();
+        if (isPlayerInRange && !isResponding)
+        {
+            StartCoroutine(Respond());
+        }
         if (isShooting)
         {
             StartCoroutine(WaitAndShoot(0.3f));
@@ -345,20 +346,34 @@ public class EnemyControllerV2 : MonoBehaviour
         SetIkWeight(weight);
     }
 
-    private IEnumerator IdleResponse()
+    private IEnumerator Respond()
     {
-        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
-        yield return new WaitForSeconds(0.4f);
-        isShooting = true;
-        yield return new WaitForSeconds(0.2f);
-        isCovering = true;
-    }
-    private IEnumerator CoveringResponse()
-    {
-        target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
-        yield return new WaitForSeconds(1f);
-        isShooting = true;
-        yield return new WaitForSeconds(1f);
+        isResponding = true;
+        shots = UnityEngine.Random.Range(1, 4);
+        while (shots > 0)
+        {
+            target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
+            yield return new WaitForSeconds(1f);
+            isShooting = true;
+            yield return new WaitForSeconds(1f);
+            shots -= 1;
+        }
+        int choice = UnityEngine.Random.Range(1, 4);
+        if (choice == 1)
+        {
+            isCovering = false;
+            isKneeling = false;
+        }
+        else if (choice == 2)
+        {
+            isKneeling = false;
+            isCovering = true;
+        }
+        else
+        {
+            isKneeling = true;
+            isCovering = false;
+        }
         isResponding = false;
     }
 
