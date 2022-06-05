@@ -350,10 +350,10 @@ public class EnemyControllerV2 : MonoBehaviour
     {
         isResponding = true;
         shots = UnityEngine.Random.Range(1, 4);
+        yield return new WaitForSeconds(2f);
         while (shots > 0)
         {
             target.position = new Vector3(playerPosition.x, UnityEngine.Random.Range(0.5f, 1.7f), playerPosition.z);
-            yield return new WaitForSeconds(1f);
             isShooting = true;
             yield return new WaitForSeconds(1f);
             shots -= 1;
